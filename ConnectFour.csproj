@@ -10,7 +10,7 @@
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>ConnectFour</RootNamespace>
         <AssemblyName>ConnectFour</AssemblyName>
-        <TargetFrameworkVersion>v3.0</TargetFrameworkVersion>
+        <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     </PropertyGroup>
@@ -40,6 +40,13 @@
         <Reference Include="System.Xml"/>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Board.cs" />
+        <Compile Include="BoardConsoleView.cs" />
+        <Compile Include="ConnectFourController.cs" />
+        <Compile Include="HumanPlayer.cs" />
+        <Compile Include="IBoardView.cs" />
+        <Compile Include="IPlayer.cs" />
+        <Compile Include="Move.cs" />
         <Compile Include="Program.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
     </ItemGroup>
