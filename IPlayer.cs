@@ -9,6 +9,7 @@
     public interface IPlayer
     {
         string Name { get; }
+        PlayerType PlayerType { get; }
         Move MakeMove();
     }
 }

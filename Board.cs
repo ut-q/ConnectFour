@@ -11,22 +11,68 @@ namespace ConnectFour
             Player1,
             Player2,
         }
+        
+        public int MoveCount
+        {
+            get { return _moveCount; }
+        }
 
-        public int Width = 7;
-        public int Height = 6;
+        public readonly int Width = 7;
+        public readonly int Height = 6;
 
-        private const int NumberOfTilesToWin = 4;
+        public readonly int NumberOfTilesToWin = 4;
 
         private readonly SpaceState[,] _board;
+        private readonly int[] _heights;
+        private int _moveCount;
+        
+        private static List<((int, int), (int, int))> _directions = new List<((int, int), (int, int))>
+        {
+            ((-1,0),(1,0)),
+            ((0,-1),(0,1)),
+            ((-1,-1),(1,1)),
+            ((-1,1),(1,-1))
+        };
 
         public Board()
         {
             _board = new SpaceState[Height, Width];
-            for (int i = 0; i < _board.GetLength(0); ++i)
+            for (int i = 0; i < Height; ++i)
             {
-                for (int j = 0; j < _board.GetLength(1); ++j)
+                for (int j = 0; j < Width; ++j)
                 {
                     _board[i, j] = SpaceState.Empty;
+                }
+            }
+
+            _heights = new int[Width];
+            _moveCount = 0;
+        }
+
+        public Board(Board board)
+        {
+            _board = new SpaceState[Height, Width];
+            _heights = new int[Width];
+            
+            Width = board.Width;
+            Height = board.Height;
+            NumberOfTilesToWin = board.NumberOfTilesToWin;
+            
+            //TODO this will need optimization anyways
+            
+            for (int i = 0; i < Height; ++i)
+            {
+                for (int j = 0; j < Width; ++j)
+                {
+                    SpaceState spaceState = board.GetSpace(i, j);
+                    if (spaceState == SpaceState.Empty)
+                    {
+                        _board[i, j] = SpaceState.Empty;
+                    }
+                    else
+                    {
+                        InsertToSpace(i,j,spaceState);
+                    }
                 }
             }
         }
@@ -46,7 +92,7 @@ namespace ConnectFour
             return _board[row, column];
         }
 
-        private void SetSpace(int row, int column, SpaceState newState)
+        private void InsertToSpace(int row, int column, SpaceState newState)
         {
             if (row >= Height || row < 0)
             {
@@ -58,26 +104,24 @@ namespace ConnectFour
                 throw new ArgumentOutOfRangeException(nameof(column), "Value is out of bounds, we shouldn't be here, something is wrong");
             }
 
+            if (newState == SpaceState.Empty)
+            {
+                throw new ArgumentException("Can't insert \"Empty Space\" into a space");
+            }
+
             _board[row, column] = newState;
+            _heights[column]++;
+            _moveCount++;
         }
 
         private int GetColumnHeight(int column)
         {
-            if (column >= Width)
+            if (column >= _heights.Length || column < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(column), "Value is out of bounds, we shouldn't be here, something is wrong");
             }
 
-            int i; 
-            for(i = 0; i < Height; ++i)
-            {
-                if (_board[i, column] == SpaceState.Empty)
-                {
-                    break;
-                }
-            }
-
-            return i;
+            return _heights[column];
         }
 
         public bool CanMakeMove(Move move)
@@ -100,12 +144,12 @@ namespace ConnectFour
         public void MakeMove(Move move)
         {
             int currentHeight = GetColumnHeight(move.MoveColumn);
-            SetSpace(currentHeight, move.MoveColumn, ConvertMoveToSpaceState(move));
+            InsertToSpace(currentHeight, move.MoveColumn, ConvertPlayerToSpaceState(move.PlayerType));
         }
         
-        private static SpaceState ConvertMoveToSpaceState(Move move)
+        public static SpaceState ConvertPlayerToSpaceState(PlayerType playerType)
         {
-            if (move.PlayerType == PlayerType.Player1)
+            if (playerType == PlayerType.Player1)
             {
                 return SpaceState.Player1;
             }
@@ -115,19 +159,30 @@ namespace ConnectFour
             }
         }
 
-        public bool CheckForGameOver(Move move)
+        public bool IsDraw()
         {
-            // check for NumberOfTilesToWin or more
-            List<((int, int), (int, int))> directions = new List<((int, int), (int, int))>();
-            directions.Add(((-1,0),(1,0)));
-            directions.Add(((0,-1),(0,1)));
-            directions.Add(((-1,-1),(1,1)));
-            directions.Add(((-1,1),(1,-1)));
-            int column = move.MoveColumn;
-            int height = Math.Max(GetColumnHeight(column) - 1,0);
-            SpaceState spaceState = ConvertMoveToSpaceState(move);
+            return _moveCount >= Height * Width;
+        }
 
-            foreach (var valueTuple in directions)
+        public Board GetCopyForAiIteration()
+        {
+            Board b = new Board(this);
+            b.ResetMoveCount();
+            return b;
+        }
+
+        private void ResetMoveCount()
+        {
+            _moveCount = 0;
+        }
+
+        public bool CheckIfMoveWinsPlayerTheGame(Move move)
+        {
+            int column = move.MoveColumn;
+            int height = Math.Max(GetColumnHeight(column),0);
+            SpaceState spaceState = ConvertPlayerToSpaceState(move.PlayerType);
+
+            foreach (var valueTuple in _directions)
             {
                 int count = 1;
                 int columnAddition = valueTuple.Item1.Item1;
