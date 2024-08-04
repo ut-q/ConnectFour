@@ -10,6 +10,7 @@
     {
         string Name { get; }
         PlayerType PlayerType { get; }
+        string PlayerInfoString { get; }
         Move MakeMove();
     }
 }

@@ -164,10 +164,13 @@ namespace ConnectFour
             return _moveCount >= Height * Width;
         }
 
-        public Board GetCopyForAiIteration()
+        public Board GetCopyForAiIteration(bool resetMoveCount = false)
         {
             Board b = new Board(this);
-            b.ResetMoveCount();
+            if (resetMoveCount)
+            {
+                b.ResetMoveCount();
+            }
             return b;
         }
 

@@ -5,7 +5,12 @@ namespace ConnectFour
     public class HumanPlayer : IPlayer
     {
         public PlayerType PlayerType { get; }
-        public string Name { get;  }
+        public string Name { get; set; }
+        
+        public string PlayerInfoString
+        {
+            get { return $"Type: Human - Name: {Name}"; }
+        }
         
         public HumanPlayer(PlayerType playerType)
         {
