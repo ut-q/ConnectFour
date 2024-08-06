@@ -12,5 +12,6 @@
         PlayerType PlayerType { get; }
         string PlayerInfoString { get; }
         Move MakeMove();
+        void Init();
     }
 }

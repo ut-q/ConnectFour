@@ -12,22 +12,22 @@ namespace ConnectFour
         private readonly Board _board;
         private readonly IBoardView _boardView;
         private readonly List<Move> _moves;
-        private AIDifficultyTuning _aiDifficultyTuning;
+        private GameMode _currentGameMode;
 
         public ConnectFourController()
         {
-
+            _currentGameMode = new ClassicGameMode();
             _board = new Board();
             _boardView = new BoardConsoleView(_board);
             _moves = new List<Move>();
-            _aiDifficultyTuning = AIDifficultyTuning.MediumTuning;
-            _player1 = new HumanPlayer(PlayerType.Player1);
-            _player2 = new AIPlayer(PlayerType.Player2, _board, _aiDifficultyTuning);
+            _player1 = new HumanPlayer(PlayerType.Player1, _board);
+            _player2 = new AIPlayer(PlayerType.Player2, _board, AIDifficultyTuning.MediumTuning);
         }
 
         public void ShowMainMenu()
         {
             Console.WriteLine(GetCurrentPlayerInfoText());
+            Console.WriteLine(GetCurrentGameModeText());
             HandleMainMenu();
         }
 
@@ -36,6 +36,10 @@ namespace ConnectFour
         /// </summary>
         private void StartGame()
         {
+            _board.Init(_currentGameMode);
+            _player1.Init();
+            _player2.Init();
+            
             bool currentPlayerWon = false;
             _currentPlayer = _player1;
             _boardView.DisplayBoard();
@@ -44,7 +48,7 @@ namespace ConnectFour
             {
                 Console.WriteLine($"Current Move: {_currentPlayer.Name}");
                 Move move = _currentPlayer.MakeMove();
-                if (move.Result == Move.MoveResult.Fail)
+                if (move.MoveResult == Move.Result.Fail)
                 {
                     // TODO evaluate calling print here
                     Console.WriteLine(move.Message);
@@ -64,8 +68,9 @@ namespace ConnectFour
                 
                 _board.MakeMove(move);
                 _moves.Add(move);
-                
-                Console.WriteLine($"{_currentPlayer.Name} played column {move.MoveColumn + 1}");
+
+                string actionString = move.MoveType == Move.Type.PushTop ? "pushed" : "popped";
+                Console.WriteLine($"{_currentPlayer.Name} {actionString} column {move.MoveColumn + 1}");
                 _boardView.DisplayBoard();
 
                 if (currentPlayerWon)
@@ -96,10 +101,16 @@ namespace ConnectFour
             return
                 $"Current Player Info: \n Player1: {_player1.PlayerInfoString}\n Player2: {_player2.PlayerInfoString}";
         }
+        
+        private string GetCurrentGameModeText()
+        {
+            return
+                $"Current Game Mode Info: \n {_currentGameMode.Tuning.GameModeName}\n {_currentGameMode.Tuning.GameModeExplanation}";
+        }
 
         private string GetMainMenuText()
         {
-            return $"Options: \n 1 - Start the game\n 2 - Change player settings";
+            return $"Options: \n 1 - Start the game\n 2 - Change player settings\n 3 - Game Mode settings";
         }
 
         private void HandleMainMenu()
@@ -122,15 +133,18 @@ namespace ConnectFour
                 HandlePlayerMenu();
                 ShowMainMenu();
             }
+            else if (val == 3)
+            {
+                HandleGameModeMenu();
+                ShowMainMenu();
+            }
         }
 
         private string GetPlayerSettingsMenuText()
         {
             return $"Options: \n 1 - Change Player 1 Info \n 2 - Change Player 2 Info";
         }
-
         
-
         private void HandlePlayerMenu()
         {
             Console.WriteLine(GetPlayerSettingsMenuText());
@@ -176,7 +190,7 @@ namespace ConnectFour
 
             if (isHuman)
             {
-                player = new HumanPlayer(playerType)
+                player = new HumanPlayer(playerType, _board)
                 {
                     Name = playerName
                 };
@@ -212,6 +226,36 @@ namespace ConnectFour
                 {
                     Name = playerName
                 };
+            }
+        }
+        
+        private string GetGameModeSettingsMenuText()
+        {
+            return $"Options: \n 1 - {ClassicGameMode.GameModeTuning.GameModeName}\n" +
+                   $"   {ClassicGameMode.GameModeTuning.GameModeExplanation}\n" +
+                   $" 2 - {PopOutGameMode.GameModeTuning.GameModeName}\n" +
+                   $"   {PopOutGameMode.GameModeTuning.GameModeExplanation}\n";
+        }
+        
+        private void HandleGameModeMenu()
+        {
+            Console.WriteLine(GetGameModeSettingsMenuText());
+            
+            string selection = Console.ReadLine();
+            int val = 1;
+            if (selection == null || (!int.TryParse(selection, out val) && (val < 1 || val > 2)))
+            {
+                Console.WriteLine("Invalid main menu selection, try again");
+            }
+
+            switch (val)
+            {
+                case 1:
+                    _currentGameMode = new ClassicGameMode();
+                    break;
+                case 2:
+                    _currentGameMode = new PopOutGameMode();
+                    break;
             }
         }
     }

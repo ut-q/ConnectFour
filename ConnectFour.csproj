@@ -44,11 +44,14 @@
         <Compile Include="AIPlayer.cs" />
         <Compile Include="Board.cs" />
         <Compile Include="BoardConsoleView.cs" />
+        <Compile Include="ClassicGameMode.cs" />
         <Compile Include="ConnectFourController.cs" />
+        <Compile Include="GameMode.cs" />
         <Compile Include="HumanPlayer.cs" />
         <Compile Include="IBoardView.cs" />
         <Compile Include="IPlayer.cs" />
         <Compile Include="Move.cs" />
+        <Compile Include="PopOutGameMode.cs" />
         <Compile Include="Program.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
     </ItemGroup>

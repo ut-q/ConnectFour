@@ -2,13 +2,22 @@
 {
     public class Move
     {
-        public enum MoveResult
+        public enum Result
         {
+            Invalid,
             Success,
             Fail
         }
-        
-        public MoveResult Result { get; set; }
+
+        public enum Type
+        {
+            Invalid,
+            PushTop,
+            PopBottom
+        }
+
+        public Type MoveType { get; set; } = Type.PushTop;
+        public Result MoveResult { get; set; } = Result.Invalid;
         public string Message { get; set; }
         public int MoveColumn { get; set; }
         public PlayerType PlayerType { get; set; }

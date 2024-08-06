@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace ConnectFour
 {
@@ -14,113 +13,94 @@ namespace ConnectFour
             get { return $"Type: Ai - Name: {Name} - Difficulty: {_difficultyTuning.Name}"; }
         }
 
-        private readonly int[] _columnOrder;
+        private int[] _columnOrder;
         private readonly Board _board;
         private readonly Random _random;
 
         private AIDifficultyTuning _difficultyTuning;
 
-        private static int[][] _evaluationTable =
-        {
-            new int[] { 3, 4, 5, 7, 5, 4, 3 }, new int[] { 4, 6, 8, 10, 8, 6, 4 }, new int[] { 5, 8, 11, 13, 11, 8, 5 },
-            new int[] { 5, 8, 11, 13, 11, 8, 5 }, new int[] { 4, 6, 8, 10, 8, 6, 4 }, new int[] { 3, 4, 5, 7, 5, 4, 3 }
-        };
-
-        private static int _evaluationConstant = 138;
-        private static int _maxValue = 1000;
-
         public AIPlayer(PlayerType playerType, Board board, AIDifficultyTuning aiDifficultyTuning)
         {
             PlayerType = playerType;
             Name = playerType.ToString();
-            _columnOrder = new int[board.Width];
-            for (int i = 0; i < _columnOrder.Length; i++)
-            {
-                _columnOrder[i] = _columnOrder.Length / 2 + (1 - 2 * (i % 2)) * (i + 1) / 2; 
-            }
+            
 
             _board = board;
             _random = new Random();
             _difficultyTuning = aiDifficultyTuning;
         }
 
+        public void Init()
+        {
+            _columnOrder = new int[_board.Width];
+            for (int i = 0; i < _columnOrder.Length; i++)
+            {
+                _columnOrder[i] = _columnOrder.Length / 2 + (1 - 2 * (i % 2)) * (i + 1) / 2; 
+            }
+        }
+
         public Move MakeMove()
         {
             int bestScore = int.MinValue;
-            List<int> bestColumns = new List<int>(); 
+            List<Move> bestMoves = new List<Move>(); 
             
             //DEBUG
 
-            List<(int, int)> columnScores = new List<(int, int)>();
+            List<(string, int)> columnScores = new List<(string, int)>();
             
             //end DEBUG
-            
-            for (int i = 0; i < _board.Width; ++i)
-            {
-                Move move = new Move()
-                {
-                    MoveColumn = _columnOrder[i],
-                    PlayerType = PlayerType
-                };
-                if (_board.CanMakeMove(move))
-                {
-                    int score;
-                    if (_board.CheckIfMoveWinsPlayerTheGame(move))
-                    {
-                        score = _maxValue;
-                    }
-                    else
-                    {
-                        Board newBoard = _board.GetCopyForAiIteration(true);
-                        newBoard.MakeMove(move);
-                        score = -NegaMax(newBoard, -_maxValue, _maxValue,
-                            PlayerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, 0, _difficultyTuning.MaxDepth);
-                    }
 
-                    if (score > bestScore)
-                    {
-                        bestScore = score;
-                        bestColumns.Clear();
-                        bestColumns.Add(move.MoveColumn);
-                    }
-                    else if (score == bestScore)
-                    {
-                        bestColumns.Add(move.MoveColumn);
-                        //TODO add weighted random here
-                    }
-                    
-                    columnScores.Add((move.MoveColumn,score));
+            List<Move> moves = _board.CurrentGameMode.GetAllPossibleMoves(_board, PlayerType, _columnOrder);
+
+            foreach (Move move in moves)
+            {
+                int score;
+                if (_board.CheckIfMoveWinsPlayerTheGame(move))
+                {
+                    score = Board.MaxBoardEvaluationValue;
                 }
+                else
+                {
+                    Board newBoard = _board.GetCopyForAiIteration(true);
+                    newBoard.MakeMove(move);
+                    score = -NegaMax(newBoard, -Board.MaxBoardEvaluationValue, Board.MaxBoardEvaluationValue,
+                        PlayerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, 0, _difficultyTuning.MaxDepth);
+                }
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestMoves.Clear();
+                    bestMoves.Add(move);
+                }
+                else if (score == bestScore)
+                {
+                    bestMoves.Add(move);
+                    //TODO add weighted random here
+                }
+                    
+                columnScores.Add((move.MoveColumn + " " + move.MoveType.ToString(),score));
             }
             
             Console.WriteLine($"DEBUG: AI Score {bestScore}");
-            foreach ((int, int) columnScore in columnScores)
+            foreach ((string, int) columnScore in columnScores)
             {
                 Console.Write($"(C:{columnScore.Item1 + 1} - S:{columnScore.Item2}) - ");
             }
             Console.WriteLine("");
 
-            if (bestColumns.Count == 0)
+            if (bestMoves.Count == 0)
             {
                 return new Move()
                 {
-                    Result = Move.MoveResult.Fail,
+                    MoveResult = Move.Result.Fail,
                     Message = "Can't find next move, is it a draw?"
                 };
             }
-            int column = _random.Next(0, bestColumns.Count);
+            int column = _random.Next(0, bestMoves.Count);
             
             //TODO handle no column being available?> (draw
-            return new Move()
-            {
-                MoveColumn = bestColumns[column],
-                PlayerType = PlayerType
-            };
-        }
-
-        public void UpdateDifficultyTuning(AIDifficultyTuning tuning)
-        {
-            _difficultyTuning = tuning;
+            return bestMoves[column];
         }
 
         /// <summary>
@@ -139,21 +119,17 @@ namespace ConnectFour
             {
                 return 0;
             }
-
-            for (int i = 0; i < board.Width; ++i)
+            
+            List<Move> moves = board.CurrentGameMode.GetAllPossibleMoves(board, playerType, _columnOrder);
+            foreach (Move move in moves)
             {
-                Move move = new Move()
+                if(board.CheckIfMoveWinsPlayerTheGame(move))
                 {
-                    MoveColumn = i,
-                    PlayerType = playerType
-                };
-                if (board.CanMakeMove(move) && board.CheckIfMoveWinsPlayerTheGame(move))
-                {
-                    return _maxValue - board.MoveCount;
+                    return Board.MaxBoardEvaluationValue - board.MoveCount;
                 }
             }
             
-            int max = _maxValue - board.MoveCount;
+            int max = Board.MaxBoardEvaluationValue - board.MoveCount;
 
             if (beta > max)
             {
@@ -166,60 +142,31 @@ namespace ConnectFour
 
             if (depth >= maxDepth)
             {
-                return EvaluateBoardScore(board, playerType);
+                return board.GetBoardEvaluationScore(playerType);
             }
+            
+            moves = board.CurrentGameMode.GetAllPossibleMoves(board, playerType, _columnOrder);
 
-            for (int i = 0; i < board.Width; ++i)
+            foreach (Move move in moves)
             {
-                Move move = new Move()
+                Board newBoard = board.GetCopyForAiIteration();
+                newBoard.MakeMove(move);
+
+                int score = -NegaMax(newBoard, -beta, -alpha,
+                    playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, depth + 1, maxDepth);
+
+                if (score >= beta)
                 {
-                    MoveColumn = _columnOrder[i],
-                    PlayerType = playerType
-                };
-                if (board.CanMakeMove(move))
+                    return score;
+                }
+
+                if (score > alpha)
                 {
-                    Board newBoard = board.GetCopyForAiIteration();
-                    newBoard.MakeMove(move);
-
-                    int score = -NegaMax(newBoard, -beta, -alpha,
-                        playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, depth + 1, maxDepth);
-
-                    if (score >= beta)
-                    {
-                        return score;
-                    }
-
-                    if (score > alpha)
-                    {
-                        alpha = score;
-                    }
+                    alpha = score;
                 }
             }
 
             return alpha;
-        }
-
-        private int EvaluateBoardScore(Board board, PlayerType currentPlayer)
-        {
-            int sum = 0;
-            Board.SpaceState spaceState = Board.ConvertPlayerToSpaceState(currentPlayer);
-            for (int row = 0; row < board.Height; row++)
-            {
-                for (int column = 0; column < board.Width; column++)
-                {
-                    Board.SpaceState cellSpaceState = board.GetSpace(row, column);
-                    if (cellSpaceState == spaceState)
-                    {
-                        sum += _evaluationTable[row][column];
-                    }
-                    else if (cellSpaceState != Board.SpaceState.Empty)
-                    {
-                        sum -= _evaluationTable[row][column];
-                    }
-                }
-            }
-
-            return _evaluationConstant + sum;
         }
     }
 }
