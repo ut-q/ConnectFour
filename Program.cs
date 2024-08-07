@@ -6,10 +6,10 @@ namespace ConnectFour
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine("Welcome to Connect Four: Game of the Year Edition");
+            Console.WriteLine("WELCOME TO CONNECT FOUR: GAME OF THE YEAR EDITION");
             ConnectFourController controller = new ConnectFourController();
-            
-            controller.ShowMainMenu();
+            MainMenu mainMenu = new MainMenu(controller);
+            mainMenu.ShowMainMenu();
         }
     }
 }

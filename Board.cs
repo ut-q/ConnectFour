@@ -24,17 +24,28 @@ namespace ConnectFour
             get { return CurrentGameMode.Tuning.Height; }
         }
 
-        public int NumberOfTilesToWin
+        private int NumberOfTilesToWin
         {
             get { return CurrentGameMode.Tuning.NumberOfTilesToWin; }
+        }
+                
+        public int MaxBoardEvaluationValue
+        {
+            get { return CurrentGameMode.Tuning.MaxBoardEvaluationValue; }
         }
 
         public GameMode CurrentGameMode { get; private set; }
 
+        /// <summary>
+        /// This matrix is the data representation of the board
+        /// </summary>
         private SpaceState[,] _board;
+        /// <summary>
+        /// this stores the height of each column for easy calculation
+        /// </summary>
         private int[] _heights;
 
-        private static List<((int, int), (int, int))> _directions = new List<((int, int), (int, int))>
+        private static readonly List<((int, int), (int, int))> Directions = new List<((int, int), (int, int))>
         {
             ((-1,0),(1,0)),
             ((0,-1),(0,1)),
@@ -60,7 +71,10 @@ namespace ConnectFour
             MoveCount = 0;
         }
 
-        public Board Clone()
+        /// <summary>
+        /// Returns a clone of the board with identical state
+        /// </summary>
+        private Board Clone()
         {
             Board clone = new Board();
             clone.Init(CurrentGameMode);
@@ -137,6 +151,7 @@ namespace ConnectFour
 
             _board[Height - 1, column] = SpaceState.Empty;
             _heights[column]--;
+            MoveCount++;
         }
 
         private int GetColumnHeight(int column)
@@ -149,6 +164,9 @@ namespace ConnectFour
             return _heights[column];
         }
 
+        /// <summary>
+        /// Checks if the given move is valid on this board
+        /// </summary>
         public bool CanMakeMove(Move move)
         {
             int column = move.MoveColumn;
@@ -186,6 +204,9 @@ namespace ConnectFour
             return move.MoveResult == Move.Result.Success;
         }
 
+        /// <summary>
+        /// Executes the given move on the board
+        /// </summary>
         public void MakeMove(Move move)
         {
             if (move.MoveType == Move.Type.PushTop)
@@ -198,7 +219,7 @@ namespace ConnectFour
                 RemoveFromSpace(move.MoveColumn);
             }
         }
-        
+
         public static SpaceState ConvertPlayerToSpaceState(PlayerType playerType)
         {
             if (playerType == PlayerType.Player1)
@@ -211,9 +232,20 @@ namespace ConnectFour
             }
         }
 
+        /// <summary>
+        /// It's a draw only if the board is full
+        /// </summary>
+        /// <returns></returns>
         public bool IsDraw()
         {
-            return MoveCount >= Height * Width;
+            foreach (int height in _heights)
+            {
+                if (height < Height - 1)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public Board GetCopyForAiIteration(bool resetMoveCount = false)
@@ -226,11 +258,9 @@ namespace ConnectFour
             return b;
         }
 
-        private void ResetMoveCount()
-        {
-            MoveCount = 0;
-        }
-
+        /// <summary>
+        /// Checks if the player wins the game after the given move
+        /// </summary>
         public bool CheckIfMoveWinsPlayerTheGame(Move move)
         {
             int column = move.MoveColumn;
@@ -263,7 +293,7 @@ namespace ConnectFour
 
         private bool CheckIfCellEndsTheGame_Internal(int row, int column, SpaceState spaceState)
         {
-            foreach (var valueTuple in _directions)
+            foreach (((int, int), (int, int)) valueTuple in Directions)
             {
                 int count = 1;
                 int columnAddition = valueTuple.Item1.Item1;
@@ -298,20 +328,6 @@ namespace ConnectFour
 
             return false;
         }
-        
-        private static int[][] _evaluationTable =
-        {
-            new int[] { 3, 4, 5, 7, 5, 4, 3 }, new int[] { 4, 6, 8, 10, 8, 6, 4 }, new int[] { 5, 8, 11, 13, 11, 8, 5 },
-            new int[] { 5, 8, 11, 13, 11, 8, 5 }, new int[] { 4, 6, 8, 10, 8, 6, 4 }, new int[] { 3, 4, 5, 7, 5, 4, 3 }
-        };
-
-        private static int _evaluationConstant = 138;
-        private static int _maxValue = 1000;
-        
-        public static int MaxBoardEvaluationValue
-        {
-            get { return _maxValue; }
-        }
 
         public int GetBoardEvaluationScore(PlayerType playerType)
         {
@@ -324,16 +340,16 @@ namespace ConnectFour
                     SpaceState cellSpaceState = GetSpace(row, column);
                     if (cellSpaceState == spaceState)
                     {
-                        sum += _evaluationTable[row][column];
+                        sum += CurrentGameMode.Tuning.EvaluationTable[row,column];
                     }
                     else if (cellSpaceState != SpaceState.Empty)
                     {
-                        sum -= _evaluationTable[row][column];
+                        sum -= CurrentGameMode.Tuning.EvaluationTable[row,column];
                     }
                 }
             }
 
-            return _evaluationConstant + sum;
+            return CurrentGameMode.Tuning.EvaluationConstant + sum;
         }
     }
 }

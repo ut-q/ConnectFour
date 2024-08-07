@@ -50,6 +50,7 @@
         <Compile Include="HumanPlayer.cs" />
         <Compile Include="IBoardView.cs" />
         <Compile Include="IPlayer.cs" />
+        <Compile Include="MainMenu.cs" />
         <Compile Include="Move.cs" />
         <Compile Include="PopOutGameMode.cs" />
         <Compile Include="Program.cs"/>

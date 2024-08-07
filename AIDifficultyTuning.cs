@@ -7,25 +7,25 @@
 
         public static readonly AIDifficultyTuning EasyTuning = new AIDifficultyTuning()
         {
-            MaxDepth = 2,
+            MaxDepth = 1,
             Name = "Easy"
         };
         
         public static readonly AIDifficultyTuning MediumTuning = new AIDifficultyTuning()
         {
-            MaxDepth = 5,
+            MaxDepth = 3,
             Name = "Medium"
         };
         
         public static readonly AIDifficultyTuning HardTuning = new AIDifficultyTuning()
         {
-            MaxDepth = 8,
+            MaxDepth = 5,
             Name = "Hard"
         };
         
         public static readonly AIDifficultyTuning ProTuning = new AIDifficultyTuning()
         {
-            MaxDepth = 11,
+            MaxDepth = 7,
             Name = "Pro"
         };
     }

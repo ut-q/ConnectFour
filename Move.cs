@@ -1,5 +1,8 @@
 ﻿namespace ConnectFour
 {
+    /// <summary>
+    /// This represents an atomic move a player can take on the board
+    /// </summary>
     public class Move
     {
         public enum Result

@@ -6,7 +6,6 @@ namespace ConnectFour
     {
         public PlayerType PlayerType { get; }
         public string Name { get; set; }
-
         private readonly Board _board;
         
         public string PlayerInfoString

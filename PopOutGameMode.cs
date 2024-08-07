@@ -11,7 +11,18 @@ namespace ConnectFour
             NumberOfTilesToWin = 4,
             GameModeName = "Pop Out",
             GameModeExplanation = "A unique variant where players can remove the bottom disk as well if it belongs to them.\n" +
-                                  "Use commands \"pop <column_name>\" or \"push <column_name>\" to play"
+                                  "Use commands \"pop <column_name>\" or \"push <column_name>\" to play",
+            EvaluationConstant = 138,
+            MaxBoardEvaluationValue = 1000,
+            EvaluationTable = new[,]
+            {
+                { 3, 4, 5, 7, 5, 4, 3 },
+                { 4, 6, 8, 10, 8, 6, 4 },
+                { 5, 8, 11, 13, 11, 8, 5 },
+                { 5, 8, 11, 13, 11, 8, 5 },
+                { 4, 6, 8, 10, 8, 6, 4 },
+                { 3, 4, 5, 7, 5, 4, 3 }
+            }
         };
 
         public override GameModeTuning Tuning

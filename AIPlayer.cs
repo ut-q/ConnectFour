@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace ConnectFour
 {
@@ -7,23 +8,30 @@ namespace ConnectFour
     {
         public PlayerType PlayerType { get; }
         public string Name { get; set; }
-        
+
         public string PlayerInfoString
         {
             get { return $"Type: Ai - Name: {Name} - Difficulty: {_difficultyTuning.Name}"; }
         }
 
+        // this is an optimization. This stores the most likely to be used column in order, this way we start going down the minimax tree
+        // branches with the highest possibility, potentially saving time.
         private int[] _columnOrder;
+        
         private readonly Board _board;
         private readonly Random _random;
 
         private AIDifficultyTuning _difficultyTuning;
 
+        private static bool ShowDebugText
+        {
+            get { return ConnectFourController.ShowDebugText; }
+        }
+
         public AIPlayer(PlayerType playerType, Board board, AIDifficultyTuning aiDifficultyTuning)
         {
             PlayerType = playerType;
             Name = playerType.ToString();
-            
 
             _board = board;
             _random = new Random();
@@ -35,36 +43,43 @@ namespace ConnectFour
             _columnOrder = new int[_board.Width];
             for (int i = 0; i < _columnOrder.Length; i++)
             {
-                _columnOrder[i] = _columnOrder.Length / 2 + (1 - 2 * (i % 2)) * (i + 1) / 2; 
+                _columnOrder[i] = _columnOrder.Length / 2 + (1 - 2 * (i % 2)) * (i + 1) / 2;
             }
         }
 
+        /// <summary>
+        /// This is the entry point for an AI player move
+        /// </summary>
         public Move MakeMove()
         {
+            Stopwatch stopwatch = null;
+            if (ShowDebugText) // this is also used as a profiling flag here but well... it is a timed test :)
+            {
+                stopwatch = new Stopwatch();
+                stopwatch.Start();
+            }
+            
             int bestScore = int.MinValue;
-            List<Move> bestMoves = new List<Move>(); 
-            
-            //DEBUG
-
-            List<(string, int)> columnScores = new List<(string, int)>();
-            
-            //end DEBUG
+            List<Move> bestMoves = new List<Move>();
+            List<(Move, int)> moveScores = new List<(Move, int)>();
 
             List<Move> moves = _board.CurrentGameMode.GetAllPossibleMoves(_board, PlayerType, _columnOrder);
-
             foreach (Move move in moves)
             {
                 int score;
                 if (_board.CheckIfMoveWinsPlayerTheGame(move))
                 {
-                    score = Board.MaxBoardEvaluationValue;
+                    score = _board.MaxBoardEvaluationValue;
                 }
                 else
                 {
+                    // we use a copy of the board to process the move in order to preserve state
                     Board newBoard = _board.GetCopyForAiIteration(true);
                     newBoard.MakeMove(move);
-                    score = -NegaMax(newBoard, -Board.MaxBoardEvaluationValue, Board.MaxBoardEvaluationValue,
-                        PlayerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, 0, _difficultyTuning.MaxDepth);
+                    // this is the entry point for the minimax tree search algorithm
+                    score = -NegaMax(newBoard, -_board.MaxBoardEvaluationValue, _board.MaxBoardEvaluationValue,
+                        PlayerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, 0,
+                        _difficultyTuning.MaxDepth);
                 }
 
                 if (score > bestScore)
@@ -76,18 +91,25 @@ namespace ConnectFour
                 else if (score == bestScore)
                 {
                     bestMoves.Add(move);
-                    //TODO add weighted random here
                 }
-                    
-                columnScores.Add((move.MoveColumn + " " + move.MoveType.ToString(),score));
+
+                if (ShowDebugText)
+                {
+                    moveScores.Add((move, score));
+                }
             }
-            
-            Console.WriteLine($"DEBUG: AI Score {bestScore}");
-            foreach ((string, int) columnScore in columnScores)
+
+            if (ShowDebugText)
             {
-                Console.Write($"(C:{columnScore.Item1 + 1} - S:{columnScore.Item2}) - ");
+                Console.WriteLine($"DEBUG: AI Score {bestScore}");
+                foreach ((Move, int) moveScore in moveScores)
+                {
+                    string actionString = moveScore.Item1.MoveType == Move.Type.PushTop ? "pushed" : "popped";
+                    Console.Write($"(C:{moveScore.Item1.MoveColumn + 1} {actionString} S:{moveScore.Item2}) || ");
+                }
+
+                Console.WriteLine("");
             }
-            Console.WriteLine("");
 
             if (bestMoves.Count == 0)
             {
@@ -97,39 +119,47 @@ namespace ConnectFour
                     Message = "Can't find next move, is it a draw?"
                 };
             }
+
+            // this would ideally be a weighted random so there would be some  more realistic variation to the choices on ties
             int column = _random.Next(0, bestMoves.Count);
             
-            //TODO handle no column being available?> (draw
+            if (ShowDebugText && stopwatch != null)
+            {
+                stopwatch.Stop();
+                Console.WriteLine($"Move took {stopwatch.Elapsed.Milliseconds} milliseconds");    
+            }
+
             return bestMoves[column];
         }
 
         /// <summary>
         /// Algorithm adapted from: http://blog.gamesolver.org/solving-connect-four/01-introduction/
+        ///
+        /// A minimax tree search algorithm with alpha-beta pruning
         /// </summary>
         private int NegaMax(Board board, int alpha, int beta, PlayerType playerType, int depth, int maxDepth)
         {
             if (alpha >= beta)
             {
-                //TODO clean this up obviously
-                Console.WriteLine("Alpha is larger than beta");
-                return 0;
+                throw new InvalidOperationException(
+                    "Alpha is larger than beta during alpha-beta pruning, this can't happen");
             }
-            
+
             if (board.IsDraw())
             {
                 return 0;
             }
-            
+
             List<Move> moves = board.CurrentGameMode.GetAllPossibleMoves(board, playerType, _columnOrder);
             foreach (Move move in moves)
             {
-                if(board.CheckIfMoveWinsPlayerTheGame(move))
+                if (board.CheckIfMoveWinsPlayerTheGame(move))
                 {
-                    return Board.MaxBoardEvaluationValue - board.MoveCount;
+                    return board.MaxBoardEvaluationValue - board.MoveCount;
                 }
             }
-            
-            int max = Board.MaxBoardEvaluationValue - board.MoveCount;
+
+            int max = board.MaxBoardEvaluationValue - board.MoveCount;
 
             if (beta > max)
             {
@@ -144,7 +174,7 @@ namespace ConnectFour
             {
                 return board.GetBoardEvaluationScore(playerType);
             }
-            
+
             moves = board.CurrentGameMode.GetAllPossibleMoves(board, playerType, _columnOrder);
 
             foreach (Move move in moves)
