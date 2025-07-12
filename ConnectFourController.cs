@@ -16,15 +16,29 @@ namespace ConnectFour
         public IPlayer Player2 { get; private set; }
         public Board Board { get; }
 
-        public ConnectFourController()
-        {
-            CurrentGameMode = new ClassicGameMode();
-            Board = new Board();
-            _boardView = new BoardConsoleView(Board);
-            _moves = new List<Move>();
-            Player1 = new HumanPlayer(PlayerType.Player1, Board);
-            Player2 = new AIPlayer(PlayerType.Player2, Board, AIDifficultyTuning.MediumTuning);
-        }
+            public ConnectFourController()
+    {
+        CurrentGameMode = new ClassicGameMode();
+        Board = new Board();
+        _boardView = new BoardConsoleView(Board);
+        _moves = new List<Move>();
+        Player1 = new HumanPlayer(PlayerType.Player1, Board);
+        Player2 = new AIPlayer(PlayerType.Player2, Board, AIDifficultyTuning.MediumTuning);
+    }
+
+    public ConnectFourController(
+        IGameModeFactory gameModeFactory,
+        IBoardFactory boardFactory,
+        IBoardViewFactory boardViewFactory,
+        IPlayerFactory playerFactory)
+    {
+        CurrentGameMode = gameModeFactory.CreateClassicGameMode();
+        Board = boardFactory.CreateBoard(CurrentGameMode);
+        _boardView = boardViewFactory.CreateConsoleBoardView(Board);
+        _moves = new List<Move>();
+        Player1 = playerFactory.CreateHumanPlayer(PlayerType.Player1, Board, "Player1");
+        Player2 = playerFactory.CreateAIPlayer(PlayerType.Player2, Board, AIDifficultyTuning.MediumTuning, "Player2");
+    }
 
         /// <summary>
         /// Main Game Loop
