@@ -37,4 +37,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="ConnectFour.Tests\**" />
+  </ItemGroup>
+
 </Project>
