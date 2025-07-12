@@ -3,7 +3,7 @@
     public class AIDifficultyTuning
     {
         public int MaxDepth { get; private set; }
-        public string Name { get; private set; }
+        public string Name { get; private set; } = string.Empty;
 
         public static readonly AIDifficultyTuning EasyTuning = new AIDifficultyTuning()
         {

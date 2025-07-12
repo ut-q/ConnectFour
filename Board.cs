@@ -16,34 +16,34 @@ namespace ConnectFour
 
         public int Width
         {
-            get { return CurrentGameMode.Tuning.Width; }
+            get { return CurrentGameMode!.Tuning.Width; }
         }
         
         public int Height 
         {
-            get { return CurrentGameMode.Tuning.Height; }
+            get { return CurrentGameMode!.Tuning.Height; }
         }
 
         private int NumberOfTilesToWin
         {
-            get { return CurrentGameMode.Tuning.NumberOfTilesToWin; }
+            get { return CurrentGameMode!.Tuning.NumberOfTilesToWin; }
         }
                 
         public int MaxBoardEvaluationValue
         {
-            get { return CurrentGameMode.Tuning.MaxBoardEvaluationValue; }
+            get { return CurrentGameMode!.Tuning.MaxBoardEvaluationValue; }
         }
 
-        public GameMode CurrentGameMode { get; private set; }
+        public GameMode? CurrentGameMode { get; private set; }
 
         /// <summary>
         /// This matrix is the data representation of the board
         /// </summary>
-        private SpaceState[,] _board;
+        private SpaceState[,]? _board;
         /// <summary>
         /// this stores the height of each column for easy calculation
         /// </summary>
-        private int[] _heights;
+        private int[]? _heights;
 
         private static readonly List<((int, int), (int, int))> Directions = new List<((int, int), (int, int))>
         {
@@ -77,7 +77,7 @@ namespace ConnectFour
         private Board Clone()
         {
             Board clone = new Board();
-            clone.Init(CurrentGameMode);
+            clone.Init(CurrentGameMode!);
             
             for (int i = 0; i < Height; ++i)
             {
@@ -106,7 +106,7 @@ namespace ConnectFour
                 throw new ArgumentOutOfRangeException(nameof(column), "Value is out of bounds, we shouldn't be here, something is wrong");
             }
 
-            return _board[row, column];
+            return _board![row, column];
         }
 
         private void InsertToSpace(int row, int column, SpaceState newState)
@@ -126,8 +126,8 @@ namespace ConnectFour
                 throw new ArgumentException("Can't insert \"Empty Space\" into a space");
             }
 
-            _board[row, column] = newState;
-            _heights[column]++;
+            _board![row, column] = newState;
+            _heights![column]++;
             MoveCount++;
         }
 
@@ -138,7 +138,7 @@ namespace ConnectFour
                 throw new ArgumentOutOfRangeException(nameof(column), "Value is out of bounds, we shouldn't be here, something is wrong");
             }
 
-            if (_board[0, column] == SpaceState.Empty)
+            if (_board![0, column] == SpaceState.Empty)
             {
                 throw new InvalidOperationException("Trying to pop from empty column, something is wrong");
 
@@ -146,17 +146,17 @@ namespace ConnectFour
 
             for (int i = 0; i < Height - 1; ++i)
             {
-                _board[i, column] = _board[i + 1, column];
+                _board![i, column] = _board![i + 1, column];
             }
 
-            _board[Height - 1, column] = SpaceState.Empty;
-            _heights[column]--;
+            _board![Height - 1, column] = SpaceState.Empty;
+            _heights![column]--;
             MoveCount++;
         }
 
         private int GetColumnHeight(int column)
         {
-            if (column >= _heights.Length || column < 0)
+            if (column >= _heights!.Length || column < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(column), "Value is out of bounds, we shouldn't be here, something is wrong");
             }
@@ -238,7 +238,7 @@ namespace ConnectFour
         /// <returns></returns>
         public bool IsDraw()
         {
-            foreach (int height in _heights)
+            foreach (int height in _heights!)
             {
                 if (height < Height - 1)
                 {
@@ -340,16 +340,16 @@ namespace ConnectFour
                     SpaceState cellSpaceState = GetSpace(row, column);
                     if (cellSpaceState == spaceState)
                     {
-                        sum += CurrentGameMode.Tuning.EvaluationTable[row,column];
+                        sum += CurrentGameMode!.Tuning.EvaluationTable[row,column];
                     }
                     else if (cellSpaceState != SpaceState.Empty)
                     {
-                        sum -= CurrentGameMode.Tuning.EvaluationTable[row,column];
+                        sum -= CurrentGameMode!.Tuning.EvaluationTable[row,column];
                     }
                 }
             }
 
-            return CurrentGameMode.Tuning.EvaluationConstant + sum;
+            return CurrentGameMode!.Tuning.EvaluationConstant + sum;
         }
     }
 }

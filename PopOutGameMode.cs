@@ -30,7 +30,7 @@ namespace ConnectFour
             get { return GameModeTuning; }
         }
         
-        public override List<Move> GetAllPossibleMoves(Board board, PlayerType playerType, int[] columnOrder = null)
+        public override List<Move> GetAllPossibleMoves(Board board, PlayerType playerType, int[]? columnOrder = null)
         {
             List<Move> moves = new List<Move>();
             for (int i = 0; i < board.Width; ++i)
@@ -68,7 +68,7 @@ namespace ConnectFour
                 PlayerType = playerType
             };
             
-            if (input == null)
+            if (string.IsNullOrEmpty(input))
             {
                 move.MoveResult = Move.Result.Fail;
                 move.Message = "Can't read input - Use commands \"pop <column_name>\" or \"push <column_name>\" to play";

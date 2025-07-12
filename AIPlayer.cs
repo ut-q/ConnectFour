@@ -16,7 +16,7 @@ namespace ConnectFour
 
         // this is an optimization. This stores the most likely to be used column in order, this way we start going down the minimax tree
         // branches with the highest possibility, potentially saving time.
-        private int[] _columnOrder;
+        private int[] _columnOrder = Array.Empty<int>();
         
         private readonly Board _board;
         private readonly Random _random;
@@ -52,7 +52,7 @@ namespace ConnectFour
         /// </summary>
         public Move MakeMove()
         {
-            Stopwatch stopwatch = null;
+            Stopwatch? stopwatch = null;
             if (ShowDebugText) // this is also used as a profiling flag here but well... it is a timed test :)
             {
                 stopwatch = new Stopwatch();
@@ -63,7 +63,7 @@ namespace ConnectFour
             List<Move> bestMoves = new List<Move>();
             List<(Move, int)> moveScores = new List<(Move, int)>();
 
-            List<Move> moves = _board.CurrentGameMode.GetAllPossibleMoves(_board, PlayerType, _columnOrder);
+            List<Move> moves = _board.CurrentGameMode!.GetAllPossibleMoves(_board, PlayerType, _columnOrder);
             foreach (Move move in moves)
             {
                 int score;
@@ -150,7 +150,7 @@ namespace ConnectFour
                 return 0;
             }
 
-            List<Move> moves = board.CurrentGameMode.GetAllPossibleMoves(board, playerType, _columnOrder);
+            List<Move> moves = board.CurrentGameMode!.GetAllPossibleMoves(board, playerType, _columnOrder);
             foreach (Move move in moves)
             {
                 if (board.CheckIfMoveWinsPlayerTheGame(move))
@@ -175,7 +175,7 @@ namespace ConnectFour
                 return board.GetBoardEvaluationScore(playerType);
             }
 
-            moves = board.CurrentGameMode.GetAllPossibleMoves(board, playerType, _columnOrder);
+            moves = board.CurrentGameMode!.GetAllPossibleMoves(board, playerType, _columnOrder);
 
             foreach (Move move in moves)
             {

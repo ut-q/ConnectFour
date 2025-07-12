@@ -5,8 +5,8 @@ namespace ConnectFour
     public class BoardConsoleView : IBoardView
     {
         private readonly Board _boardReference;
-        private IPlayer _player1;
-        private IPlayer _player2;
+        private IPlayer? _player1;
+        private IPlayer? _player2;
         
         public BoardConsoleView(Board board)
         {
@@ -35,8 +35,8 @@ namespace ConnectFour
                 }
                 Console.WriteLine();
             }
-            Console.WriteLine($"{_player1.Name}:{GetSpaceStateCharacter(Board.ConvertPlayerToSpaceState(PlayerType.Player1))}\n" +
-                              $"{_player2.Name}:{GetSpaceStateCharacter(Board.ConvertPlayerToSpaceState(PlayerType.Player2))}");
+            Console.WriteLine($"{_player1?.Name ?? "Player1"}:{GetSpaceStateCharacter(Board.ConvertPlayerToSpaceState(PlayerType.Player1))}\n" +
+                              $"{_player2?.Name ?? "Player2"}:{GetSpaceStateCharacter(Board.ConvertPlayerToSpaceState(PlayerType.Player2))}");
         }
 
         public void ShowMessage(string message)

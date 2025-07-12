@@ -40,11 +40,12 @@ namespace ConnectFour
         {
             Console.WriteLine(GetMainMenuText());
 
-            string selection = Console.ReadLine();
+            string? selection = Console.ReadLine();
             int val = 1;
-            if (selection == null || (!int.TryParse(selection, out val) && (val < 1 || val > 4)))
+            if (string.IsNullOrEmpty(selection) || !int.TryParse(selection, out val) || val < 1 || val > 4)
             {
                 Console.WriteLine("Invalid main menu selection, try again");
+                return;
             }
 
             switch (val)
@@ -76,11 +77,12 @@ namespace ConnectFour
         {
             Console.WriteLine(GetPlayerSettingsMenuText());
 
-            string selection = Console.ReadLine();
+            string? selection = Console.ReadLine();
             int val = 1;
-            if (selection == null || (!int.TryParse(selection, out val) && (val < 1 || val > 2)))
+            if (string.IsNullOrEmpty(selection) || !int.TryParse(selection, out val) || val < 1 || val > 2)
             {
                 Console.WriteLine("Invalid main menu selection, try again");
+                return;
             }
 
             switch (val)
@@ -99,8 +101,8 @@ namespace ConnectFour
             IPlayer player;
 
             Console.WriteLine("Set Player Type: \n 1 - Human\n 2 - Ai");
-            string selection = Console.ReadLine();
-            if (selection == null || (!int.TryParse(selection, out int type) && (type < 1 || type > 3)))
+            string? selection = Console.ReadLine();
+            if (string.IsNullOrEmpty(selection) || !int.TryParse(selection, out int type) || type < 1 || type > 3)
             {
                 Console.WriteLine("Invalid menu selection, try again");
                 return;
@@ -109,8 +111,8 @@ namespace ConnectFour
             bool isHuman = type == 1;
 
             Console.WriteLine(@"Enter Player Name:");
-            string playerName = Console.ReadLine();
-            if (playerName == null)
+            string? playerName = Console.ReadLine();
+            if (string.IsNullOrEmpty(playerName))
             {
                 Console.WriteLine("Invalid menu selection, try again");
                 return;
@@ -126,9 +128,9 @@ namespace ConnectFour
             else
             {
                 Console.WriteLine("Set Ai Difficulty: \n 1 - Easy\n 2 - Medium\n 3 - Hard\n 4 - Pro");
-                selection = Console.ReadLine();
-                if (selection == null ||
-                    (!int.TryParse(selection, out int difficulty) && (difficulty < 1 || difficulty > 4)))
+                string? difficultySelection = Console.ReadLine();
+                if (string.IsNullOrEmpty(difficultySelection) ||
+                    (!int.TryParse(difficultySelection, out int difficulty) && (difficulty < 1 || difficulty > 4)))
                 {
                     Console.WriteLine("Invalid menu selection, try again");
                     return;
@@ -172,11 +174,12 @@ namespace ConnectFour
         {
             Console.WriteLine(GetGameModeSettingsMenuText());
 
-            string selection = Console.ReadLine();
+            string? selection = Console.ReadLine();
             int val = 1;
-            if (selection == null || (!int.TryParse(selection, out val) && (val < 1 || val > 2)))
+            if (string.IsNullOrEmpty(selection) || !int.TryParse(selection, out val) || val < 1 || val > 2)
             {
                 Console.WriteLine("Invalid main menu selection, try again");
+                return;
             }
 
             GameMode gameMode;

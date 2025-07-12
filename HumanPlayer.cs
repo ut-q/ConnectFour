@@ -24,8 +24,16 @@ namespace ConnectFour
         
         public Move MakeMove()
         {
-            string input = Console.ReadLine();
-            return _board.CurrentGameMode.GetMoveFromInput(input, PlayerType);;
+            string? input = Console.ReadLine();
+            if (string.IsNullOrEmpty(input))
+            {
+                return new Move
+                {
+                    MoveResult = Move.Result.Fail,
+                    Message = "Invalid input: Please enter a valid column number"
+                };
+            }
+            return _board.CurrentGameMode!.GetMoveFromInput(input, PlayerType);
         }
     }
 }

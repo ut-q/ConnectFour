@@ -21,7 +21,7 @@
 
         public Type MoveType { get; set; } = Type.PushTop;
         public Result MoveResult { get; set; } = Result.Invalid;
-        public string Message { get; set; }
+        public string Message { get; set; } = string.Empty;
         public int MoveColumn { get; set; }
         public PlayerType PlayerType { get; set; }
     }

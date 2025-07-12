@@ -4,7 +4,7 @@ namespace ConnectFour
 {
     public class ConnectFourController
     {
-        private IPlayer _currentPlayer = null;
+        private IPlayer? _currentPlayer = null;
 
         private readonly IBoardView _boardView;
         private readonly List<Move> _moves;
